@@ -2286,11 +2286,6 @@
         // --- EmailJS Helper Functions ---
 
         function sendEmail(templateParams) {
-            // Check if placeholder keys are still in use
-            if (emailjs.init.publicKey === "YOUR_PUBLIC_KEY" || EMAILJS_SERVICE_ID === "YOUR_SERVICE_ID") {
-                console.warn("EmailJS not configured. Emails will not be sent. Please add your keys.");
-                return;
-            }
 
             emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
                 .then(function (response) {
