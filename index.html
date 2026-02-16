@@ -1,0 +1,2569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remindly – Smart Activity & Meeting Reminder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            // https://dashboard.emailjs.com/admin/account
+            // REPLACE THESE WITH YOUR ACTUAL EMAILJS KEYS
+            emailjs.init("SQG_5iChyjyVi40Eg");
+        })();
+    </script>
+    <style>
+        :root {
+            /* Remindly – Light mode (calm productivity: blue, teal, purple) */
+            --bg-primary: #f0f9ff;
+            --bg-secondary: #e0f2fe;
+            --bg-card: #ffffff;
+            --bg-body: linear-gradient(145deg, #e0f2fe 0%, #f0f9ff 35%, #ede9fe 70%, #e0e7ff 100%);
+            --bg-body-overlay: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(99, 102, 241, 0.12), transparent), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20, 184, 166, 0.1), transparent), radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124, 58, 237, 0.08), transparent);
+            --accent-primary: #6366f1;
+            --accent-secondary: #f472b6;
+            --accent-tertiary: #14b8a6;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: rgba(99, 102, 241, 0.2);
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --border-input: rgba(0, 0, 0, 0.08);
+            --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(99, 102, 241, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.72);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --auth-overlay-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(20, 184, 166, 0.1) 50%, rgba(124, 58, 237, 0.12) 100%);
+            --auth-modal-bg: rgba(255, 255, 255, 0.7);
+            --auth-modal-border: rgba(255, 255, 255, 0.6);
+            --accent-soft: rgba(99, 102, 241, 0.12);
+        }
+
+        [data-theme="dark"] {
+            /* Remindly – Dark mode (navy/charcoal, soft contrast) */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-body: linear-gradient(160deg, #0f172a 0%, #1e293b 40%, #312e81 100%);
+            --bg-body-overlay: radial-gradient(ellipse 80% 50% at 20% 20%, rgba(99, 102, 241, 0.15), transparent), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20, 184, 166, 0.08), transparent), radial-gradient(ellipse 50% 30% at 50% 50%, rgba(124, 58, 237, 0.06), transparent);
+            --accent-primary: #818cf8;
+            --accent-secondary: #f472b6;
+            --accent-tertiary: #2dd4bf;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: rgba(129, 140, 248, 0.25);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-input: rgba(255, 255, 255, 0.1);
+            --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.2);
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.25);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --auth-overlay-bg: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.9) 100%);
+            --auth-modal-bg: rgba(30, 41, 59, 0.85);
+            --auth-modal-border: rgba(255, 255, 255, 0.1);
+            --accent-soft: rgba(129, 140, 248, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            transition: background-color 0.35s ease, color 0.35s ease;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.35s ease, color 0.35s ease;
+        }
+
+        /* Soft gradient overlay (glassmorphism base) */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: var(--bg-body-overlay);
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.35s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -2px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.35s ease, border-color 0.35s ease;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-subtle);
+            animation: fadeIn 0.8s ease-out 0.4s both;
+            transition: border-color 0.35s ease;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .tab:hover {
+            color: var(--accent-primary);
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary));
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scaleX(0);
+            }
+
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        /* Content Sections */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Activity Form */
+        .activity-form {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-card);
+            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            color: var(--accent-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        textarea {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-input);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.35s ease, color 0.35s ease;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            border-radius: 14px;
+            padding: 1rem 2rem;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .button:hover::before {
+            width: 280px;
+            height: 280px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        /* Activities List */
+        .activities-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .activity-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.35s ease, border-color 0.35s ease;
+            animation: fadeInUp 0.5s ease-out both;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .activity-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .activity-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .activity-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .activity-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .activity-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .activity-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--accent-primary), var(--accent-tertiary));
+        }
+
+        .activity-card:hover {
+            transform: translateX(6px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .activity-card.past {
+            opacity: 0.6;
+        }
+
+        .activity-card.past::before {
+            background: var(--text-muted);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .activity-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .activity-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .activity-time-icon {
+            font-size: 1.3rem;
+        }
+
+        .activity-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .activity-countdown {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--accent-primary);
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .activity-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-delete {
+            background: rgba(244, 114, 182, 0.12);
+            border: 1px solid var(--accent-secondary);
+            color: var(--accent-secondary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-delete:hover {
+            background: var(--accent-secondary);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Calendar View */
+        .calendar-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow-card);
+            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .calendar-month {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .calendar-nav button {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .calendar-nav button:hover {
+            background: var(--accent-primary);
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 1rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .calendar-day:hover {
+            border-color: var(--accent-primary);
+            transform: scale(1.05);
+        }
+
+        .calendar-day.has-activity::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+        }
+
+        .calendar-day.today {
+            border: 2px solid var(--accent-primary);
+            background: var(--accent-soft);
+        }
+
+        .calendar-day.selected {
+            background: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        .calendar-day-number {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .auth-switch a:hover {
+            color: var(--accent-secondary);
+            text-decoration: underline;
+        }
+
+        .btn-back {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .btn-back:hover {
+            color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(-3px);
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-soft), 0 0 0 1px rgba(99, 102, 241, 0.1);
+            transform: translateX(400px);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-title {
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .toast-message {
+            color: var(--text-secondary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .tab {
+                padding: 0.75rem 1rem;
+            }
+
+            .activity-form {
+                padding: 1.5rem;
+            }
+
+            .toast {
+                right: 1rem;
+                left: 1rem;
+                max-width: none;
+            }
+        }
+
+        /* App header (Sign In / Log Out) */
+        .app-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .app-header-bar .user-info {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .app-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-theme-toggle {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            background: var(--glass-bg);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-theme-toggle:hover {
+            background: rgba(99, 102, 241, 0.12);
+            transform: scale(1.05);
+        }
+
+        .btn-logout,
+        .btn-signin {
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-logout {
+            background: rgba(244, 114, 182, 0.12);
+            border: 1px solid var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+
+        .btn-logout:hover {
+            background: var(--accent-secondary);
+            color: #fff;
+        }
+
+        .btn-signin {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .btn-signin:hover {
+            background: var(--accent-primary);
+            color: #fff;
+        }
+
+        /* Auth modal – glassmorphism + smooth fade-in */
+        .auth-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--auth-overlay-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .auth-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .auth-modal-overlay.visible .auth-modal-content {
+            animation: modalFadeIn 0.4s ease forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .auth-modal-content {
+            background: var(--auth-modal-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--auth-modal-border);
+            border-radius: 24px;
+            transition: background-color 0.35s ease, border-color 0.35s ease;
+            padding: 2rem 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5);
+            position: relative;
+            opacity: 0;
+        }
+
+        .auth-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--border-subtle);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .auth-modal-close:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-primary);
+        }
+
+        .auth-modal-message {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .auth-modal-message-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--accent-primary);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .auth-modal-message-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .auth-modal-message-subtitle {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .auth-modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 1.5rem;
+            padding-right: 2rem;
+        }
+
+        .auth-modal-tabs {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .auth-modal-tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .auth-modal-tab.active {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .auth-modal-tab:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .auth-modal-panel {
+            display: none;
+        }
+
+        .auth-modal-panel.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .auth-modal-panel .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .auth-modal-panel input[type="text"],
+        .auth-modal-panel input[type="email"],
+        .auth-modal-panel input[type="password"] {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-input);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .auth-modal-panel input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .auth-modal-panel .button {
+            width: 100%;
+            margin-top: 0.25rem;
+        }
+
+        .auth-error {
+            background: rgba(244, 114, 182, 0.12);
+            border: 1px solid var(--accent-secondary);
+            color: #be185d;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .auth-error.visible {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-modal-switch {
+            text-align: center;
+            margin-top: 1.25rem;
+        }
+
+        .auth-modal-switch button {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .auth-modal-switch button:hover {
+            color: var(--accent-tertiary);
+        }
+
+        @media (max-width: 480px) {
+            .auth-modal-content {
+                padding: 1.5rem;
+            }
+
+            .auth-modal-message {
+                margin-bottom: 1.25rem;
+                padding-bottom: 1rem;
+            }
+
+            .auth-modal-message-title {
+                font-size: 1.2rem;
+            }
+
+            .auth-modal-message-subtitle {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Welcome Screen (Replaces Auth Modal) */
+        .welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .welcome-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .stars-container {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.2);
+            }
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .welcome-overlay.visible .welcome-card {
+            transform: translateY(0);
+        }
+
+        .welcome-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .welcome-input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .welcome-label {
+            display: block;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .welcome-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.2rem;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .welcome-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .stay-signed-in {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            display: grid;
+            place-items: center;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        input[type="checkbox"]:checked+.checkbox-custom {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .checkbox-custom::after {
+            content: '✓';
+            font-size: 12px;
+            color: #fff;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s ease;
+            font-weight: 900;
+        }
+
+        input[type="checkbox"]:checked+.checkbox-custom::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .btn-get-started {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border: none;
+            border-radius: 16px;
+            padding: 1.2rem;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-get-started:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-get-started:active {
+            transform: scale(0.98);
+        }
+
+        /* Digital Clock */
+        .clock-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border-radius: 16px;
+            display: inline-block;
+            border: 1px solid var(--border-subtle);
+            animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        .digital-clock {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+
+        .local-time-msg {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        @media (max-width: 480px) {
+            .welcome-card {
+                padding: 2rem;
+            }
+
+            .welcome-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Landing Page Styles */
+        .landing-page {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-body);
+            z-index: 100;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .landing-hero {
+            margin-top: 5vh;
+            margin-bottom: 4rem;
+            max-width: 800px;
+            animation: fadeInDown 1s ease-out;
+            position: relative;
+            z-index: 2;
+        }
+
+        .landing-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .landing-tagline {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            font-weight: 500;
+        }
+
+        .landing-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 4rem;
+        }
+
+        .btn-landing-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-landing-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-landing-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-landing-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .landing-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin-bottom: 4rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 1rem;
+            border-radius: 16px;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .feature-desc {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .landing-title {
+                font-size: 3.5rem;
+            }
+
+            .landing-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <script>
+        (function () {
+            var key = 'remindly_theme';
+            var stored = localStorage.getItem(key);
+            var theme = stored === 'dark' || stored === 'light' ? stored : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+
+<body>
+    <!-- Landing Page (Public) -->
+    <div id="landingPage" class="landing-page">
+        <div class="stars-container" id="landingStars"></div>
+
+        <header class="app-header-bar"
+            style="width: 100%; max-width: 1200px; justify-content: flex-end; margin-bottom: 0;">
+            <button type="button" class="btn-signin" onclick="openAuthModal('signin')" style="margin-right: 1rem;">Sign
+                In</button>
+            <button type="button" class="btn-theme-toggle" id="landingThemeToggle" onclick="toggleTheme()"
+                aria-label="Toggle dark mode">🌙</button>
+        </header>
+
+        <section class="landing-hero">
+            <h1 class="landing-title">Remindly</h1>
+            <p class="landing-tagline">Never miss what matters.</p>
+            <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.1rem; line-height: 1.6;">
+                The smart activity reminder used by productive people worldwide.
+                <br>Calendar views, email notifications, and beautiful focus modes.
+            </p>
+            <div class="landing-buttons">
+                <button class="btn-landing-primary" onclick="openAuthModal('signup')">Get Started</button>
+                <button class="btn-landing-secondary" onclick="openAuthModal('signin')">Sign In</button>
+            </div>
+        </section>
+
+        <section class="landing-features">
+            <div class="feature-card">
+                <span class="feature-icon">📅</span>
+                <h3 class="feature-title">Smart Calendar</h3>
+                <p class="feature-desc">Visualize your month with our intuitive calendar view. Drag, drop, and organize
+                    your life effortlessly.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📧</span>
+                <h3 class="feature-title">Email Reminders</h3>
+                <p class="feature-desc">Get notified directly in your inbox 5 minutes before any activity starts.
+                    Powered by EmailJS.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔔</span>
+                <h3 class="feature-title">Instant Alerts</h3>
+                <p class="feature-desc">Browser notifications and gentle alarm sounds ensure you're always on time for
+                    meetings.</p>
+            </div>
+        </section>
+
+        <footer style="margin-top: auto; color: var(--text-muted); font-size: 0.9rem; padding-bottom: 2rem;">
+            &copy; 2026 Remindly. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Main app Dashboard (Protected) -->
+    <div class="container" id="appDashboard" style="display: none;">
+        <div class="app-header-bar">
+            <div class="user-info"><span id="userDisplayName"></span></div>
+            <div class="app-header-actions">
+                <button type="button" class="btn-theme-toggle" id="themeToggle" onclick="toggleTheme()"
+                    aria-label="Toggle dark mode" title="Toggle dark / light mode">🌙</button>
+                <button type="button" class="btn-logout" id="btnLogOut" onclick="handleLogOut()">Sign Out</button>
+            </div>
+        </div>
+        <header>
+            <h1>Remindly</h1>
+            <p class="subtitle">Smart activity & meeting reminders</p>
+            <div class="clock-container">
+                <div class="digital-clock" id="digitalClock">--:--</div>
+                <div class="local-time-msg">
+                    <span>🌍</span> We’ll use your local time to schedule reminders correctly.
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number" id="totalActivities">0</div>
+                <div class="stat-label">Total Activities</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="upcomingActivities">0</div>
+                <div class="stat-label">Upcoming</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayActivities">0</div>
+                <div class="stat-label">Today</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('activities')">📋 My Activities</button>
+            <button class="tab" onclick="tryAddNew()">➕ Add New</button>
+            <button class="tab" onclick="switchTab('calendar')">📅 Calendar</button>
+        </div>
+
+        <!-- Activities Tab -->
+        <div id="activitiesTab" class="tab-content active">
+            <div class="activities-list" id="activitiesList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div class="empty-state-text">No activities yet. Add your first one!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Activity Tab -->
+        <div id="addTab" class="tab-content">
+            <div class="activity-form">
+                <div class="form-group">
+                    <label for="activityTitle">Activity Title</label>
+                    <input type="text" id="activityTitle" placeholder="E.g., Morning Exercise, Team Meeting"
+                        maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="activityDescription">Description (Optional)</label>
+                    <textarea id="activityDescription" placeholder="Add details about your activity..."
+                        maxlength="500"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="activityTime">Date & Time</label>
+                    <input type="datetime-local" id="activityTime">
+                </div>
+                <div class="form-group">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                        💡 You'll receive a browser notification 5 minutes before your activity, and an alarm will sound
+                        when it's time!
+                    </p>
+                </div>
+                <button class="button" onclick="addActivity()">Create Activity</button>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div id="calendarTab" class="tab-content">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-month" id="calendarMonth">January 2024</div>
+                    <div class="calendar-nav">
+                        <button onclick="changeMonth(-1)">←</button>
+                        <button onclick="changeMonth(1)">→</button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">Sun</div>
+                    <div class="calendar-day-header">Mon</div>
+                    <div class="calendar-day-header">Tue</div>
+                    <div class="calendar-day-header">Wed</div>
+                    <div class="calendar-day-header">Thu</div>
+                    <div class="calendar-day-header">Fri</div>
+                    <div class="calendar-day-header">Sat</div>
+                </div>
+                <div class="calendar-grid" id="calendarDays"></div>
+                <div id="selectedDayActivities" style="margin-top: 2rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome / Auth Screen -->
+    <div id="welcomeScreen" class="welcome-overlay">
+        <div class="stars-container" id="starsContainer"></div>
+        <div class="welcome-card">
+            <button class="btn-back" onclick="closeAuthModal()">
+                <span>←</span> Back
+            </button>
+            <h1 class="welcome-title">Remindly</h1>
+            <p class="welcome-subtitle">Your personal space for productivity</p>
+
+            <!-- Sign In Form -->
+            <form id="signInForm" onsubmit="handleSignIn(event)">
+                <div class="welcome-input-group">
+                    <label class="welcome-label">Email</label>
+                    <input type="email" id="signInEmail" class="welcome-input" placeholder="you@example.com" required
+                        autocomplete="email">
+                </div>
+                <div class="welcome-input-group">
+                    <label class="welcome-label">Password</label>
+                    <input type="password" id="signInPassword" class="welcome-input" placeholder="••••••" required
+                        autocomplete="current-password">
+                </div>
+
+                <label class="stay-signed-in">
+                    <input type="checkbox" id="rememberMeCheck" checked style="display: none;">
+                    <span class="checkbox-custom"></span>
+                    Remember me on this device
+                </label>
+
+                <div id="signInError" class="auth-error-msg"
+                    style="color: #ff6b6b; font-size: 0.9rem; margin-bottom: 1rem; display: none;"></div>
+
+                <button type="submit" class="btn-get-started">Sign In</button>
+                <div class="auth-switch-link"
+                    style="margin-top: 1rem; color: #94a3b8; font-size: 0.9rem; cursor: pointer;"
+                    onclick="toggleAuthMode('signup')">
+                    Don't have an account? <span style="color: #fff; text-decoration: underline;">Create one</span>
+                </div>
+            </form>
+
+            <!-- Sign Up Form (Hidden by default) -->
+            <form id="signUpForm" onsubmit="handleSignUp(event)" style="display: none;">
+                <div class="welcome-input-group">
+                    <label class="welcome-label">Full Name</label>
+                    <input type="text" id="signUpName" class="welcome-input" placeholder="John Doe" required
+                        autocomplete="name">
+                </div>
+                <div class="welcome-input-group">
+                    <label class="welcome-label">Email</label>
+                    <input type="email" id="signUpEmail" class="welcome-input" placeholder="you@example.com" required
+                        autocomplete="email">
+                </div>
+                <div class="welcome-input-group">
+                    <label class="welcome-label">Password</label>
+                    <input type="password" id="signUpPassword" class="welcome-input" placeholder="Min. 6 characters"
+                        required autocomplete="new-password" minlength="6">
+                </div>
+                <div class="welcome-input-group">
+                    <label class="welcome-label">Confirm Password</label>
+                    <input type="password" id="signUpConfirmPassword" class="welcome-input"
+                        placeholder="Confirm password" required autocomplete="new-password" minlength="6">
+                </div>
+
+                <div id="signUpError" class="auth-error-msg"
+                    style="color: #ff6b6b; font-size: 0.9rem; margin-bottom: 1rem; display: none;"></div>
+
+                <button type="submit" class="btn-get-started">Create Account</button>
+                <div class="auth-switch-link"
+                    style="margin-top: 1rem; color: #94a3b8; font-size: 0.9rem; cursor: pointer;"
+                    onclick="toggleAuthMode('signin')">
+                    Already have an account? <span style="color: #fff; text-decoration: underline;">Sign In</span>
+                </div>
+            </form>
+
+            <!-- Verify Form -->
+            <form id="verifyForm" class="auth-modal-panel" onsubmit="handleVerify(event)" style="display: none;">
+                <div class="auth-modal-message">
+                    <div class="auth-modal-message-icon">✉️</div>
+                    <div class="auth-modal-message-title">Check your inbox</div>
+                    <p class="auth-modal-message-subtitle">
+                        We sent a 6-digit code to <br><strong id="verifyEmailDisplay"
+                            style="color: var(--text-primary);"></strong>
+                    </p>
+                </div>
+
+                <div class="welcome-input-group">
+                    <input type="text" id="verifyCode" class="welcome-input" placeholder="Enter 6-digit code" required
+                        maxlength="6" style="text-align: center; letter-spacing: 0.5rem; font-size: 1.5rem;">
+                </div>
+
+                <div id="verifyError" class="auth-error-msg"
+                    style="color: #ff6b6b; font-size: 0.9rem; margin-bottom: 1rem; display: none;"></div>
+
+                <button type="submit" class="btn-get-started">Verify</button>
+
+                <div class="auth-switch-link"
+                    style="margin-top: 1rem; color: #94a3b8; font-size: 0.9rem; cursor: pointer;"
+                    onclick="resendCode()">
+                    Didn't receive it? <span style="color: #fff; text-decoration: underline;">Resend Code</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-title" id="toastTitle">Notification</div>
+        <div class="toast-message" id="toastMessage">Message</div>
+    </div>
+
+    <!-- Alarm Audio -->
+    <audio id="alarmSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // --- Configuration & State ---
+        const USERS_KEY = 'remindly_users';
+        const CURRENT_USER_KEY = 'remindly_current_user';
+        const THEME_KEY = 'remindly_theme';
+
+        // EmailJS Configuration - REPLACE WITH YOUR KEYS
+        const EMAILJS_SERVICE_ID = "service_hf5eb69";
+        const EMAILJS_TEMPLATE_ID = "template_7b26qif";
+
+        // State
+        let currentUser = null;
+        let activities = [];
+        let currentMonth = new Date();
+        let scheduledNotifications = new Map();
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            generateStars('landingStars'); // Stars for landing page
+            generateStars('starsContainer'); // Stars for auth overlay
+            startClock();
+            checkLoginStatus();
+
+            // Set min datetime for activity input
+            setMinDateTime();
+
+            // Notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
+            // Periodic checks
+            setInterval(checkActivities, 60000); // Check every minute
+            setInterval(updateClock, 1000);      // Update clock every second
+        });
+
+        // --- Theme Management ---
+        function initTheme() {
+            const stored = localStorage.getItem(THEME_KEY);
+            const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+            updateThemeToggleIcon();
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem(THEME_KEY, target);
+            updateThemeToggleIcon();
+        }
+
+        function updateThemeToggleIcon() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const text = isDark ? '☀️' : '🌙';
+            const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+
+            ['themeToggle', 'landingThemeToggle'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.textContent = text;
+                    btn.setAttribute('aria-label', label);
+                }
+            });
+        }
+
+        // --- Clock & Animation ---
+        function startClock() {
+            updateClock();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const clockEl = document.getElementById('digitalClock');
+            if (clockEl) clockEl.textContent = timeString;
+        }
+
+        function generateStars(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Clear existing
+            container.innerHTML = '';
+
+            const starCount = 50;
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const size = Math.random() * 2 + 1;
+                const duration = Math.random() * 3 + 2;
+                const delay = Math.random() * 5;
+
+                star.style.left = `${x}%`;
+                star.style.top = `${y}%`;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animation = `twinkle ${duration}s infinite ${delay}s`;
+                container.appendChild(star);
+            }
+        }
+
+        // --- Authentication ---
+        function openAuthModal(mode = 'signin') {
+            document.getElementById('welcomeScreen').classList.add('visible');
+            toggleAuthMode(mode);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('welcomeScreen').classList.remove('visible');
+            // Clear forms
+            document.getElementById('signInForm').reset();
+            document.getElementById('signUpForm').reset();
+            document.getElementById('verifyForm').reset(); // Clear verify form
+            // Clear errors
+            const signInError = document.getElementById('signInError');
+            const signUpError = document.getElementById('signUpError');
+            const verifyError = document.getElementById('verifyError');
+            if (signInError) signInError.style.display = 'none';
+            if (signUpError) signUpError.style.display = 'none';
+            if (verifyError) verifyError.style.display = 'none';
+
+            tempRegistrationData = null; // Clear temp data
+        }
+
+        function toggleAuthMode(mode) {
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const verifyForm = document.getElementById('verifyForm');
+            const title = document.querySelector('.welcome-title');
+            const subtitle = document.querySelector('.welcome-subtitle');
+
+            // Hide all first
+            signInForm.style.display = 'none';
+            signUpForm.style.display = 'none';
+            verifyForm.style.display = 'none';
+
+            // Clear errors
+            const signInError = document.getElementById('signInError');
+            const signUpError = document.getElementById('signUpError');
+            const verifyError = document.getElementById('verifyError');
+            if (signInError) signInError.style.display = 'none';
+            if (signUpError) signUpError.style.display = 'none';
+            if (verifyError) verifyError.style.display = 'none';
+
+            if (mode === 'signup') {
+                signUpForm.style.display = 'block';
+                title.textContent = 'Join Remindly';
+                subtitle.textContent = 'Create your account to get started';
+            } else if (mode === 'verify') {
+                verifyForm.style.display = 'block';
+                title.textContent = 'Verify Email';
+                subtitle.textContent = 'Enter the code assigned to your email';
+            } else {
+                signInForm.style.display = 'block';
+                title.textContent = 'Welcome back';
+                subtitle.textContent = 'Sign in to access your dashboard';
+            }
+        }
+
+        function checkLoginStatus() {
+            // Check localStorage (Remember Me)
+            let savedUserStr = localStorage.getItem(CURRENT_USER_KEY);
+
+            if (!savedUserStr) {
+                // Check sessionStorage (Active Session)
+                savedUserStr = sessionStorage.getItem(CURRENT_USER_KEY);
+            }
+
+            if (savedUserStr) {
+                currentUser = JSON.parse(savedUserStr);
+                loginUser(currentUser);
+            } else {
+                // Not logged in -> Show Landing Page
+                showLandingPage();
+            }
+        }
+
+        function showLandingPage() {
+            document.getElementById('landingPage').style.display = 'flex';
+            document.getElementById('appDashboard').style.display = 'none';
+            document.getElementById('welcomeScreen').classList.remove('visible');
+        }
+
+        // Simulating hash for security (basic simulation)
+        async function hashPassword(password) {
+            const msgBuffer = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signUpName').value.trim();
+            const email = document.getElementById('signUpEmail').value.trim().toLowerCase();
+            const password = document.getElementById('signUpPassword').value;
+            const confirmPassword = document.getElementById('signUpConfirmPassword').value;
+            const errorEl = document.getElementById('signUpError');
+
+            errorEl.style.display = 'none';
+
+            // Validation
+            if (!email.includes('@')) {
+                showAuthError(errorEl, 'Please enter a valid email address');
+                return;
+            }
+            if (password.length < 6) {
+                showAuthError(errorEl, 'Password must be at least 6 characters');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showAuthError(errorEl, 'Passwords do not match');
+                return;
+            }
+
+            // Check if user exists
+            const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            if (users.find(u => u.email === email)) {
+                showAuthError(errorEl, 'An account with this email already exists');
+                return;
+            }
+
+            // Create User Hash
+            const passwordHash = await hashPassword(password);
+
+            // Generate OTP
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const expires = Date.now() + 10 * 60 * 1000; // 10 mins from now
+
+            // Store Temp Data
+            tempRegistrationData = {
+                name,
+                email,
+                passwordHash,
+                otp,
+                expires,
+                attempts: 0
+            };
+
+            // Send Verification Email
+            sendVerificationEmail(email, otp);
+
+            // Switch to Verify Screen
+            document.getElementById('verifyEmailDisplay').textContent = email;
+            toggleAuthMode('verify');
+
+            showToast('Code Sent', `We sent a verification code to ${email}`);
+        }
+
+        async function handleVerify(e) {
+            e.preventDefault();
+            const codeInput = document.getElementById('verifyCode').value.trim();
+            const errorEl = document.getElementById('verifyError');
+
+            errorEl.style.display = 'none';
+
+            if (!tempRegistrationData) {
+                showAuthError(errorEl, 'Session expired. Please sign up again.');
+                setTimeout(() => toggleAuthMode('signup'), 2000);
+                return;
+            }
+
+            // Check Expiration
+            if (Date.now() > tempRegistrationData.expires) {
+                showAuthError(errorEl, 'Code expired. Please request a new one.');
+                return;
+            }
+
+            // Check Attempts
+            if (tempRegistrationData.attempts >= 3) {
+                showAuthError(errorEl, 'Too many failed attempts. Please sign up again.');
+                tempRegistrationData = null;
+                setTimeout(() => toggleAuthMode('signup'), 2000);
+                return;
+            }
+
+            // Verify Code
+            if (codeInput !== tempRegistrationData.otp) {
+                tempRegistrationData.attempts++;
+                showAuthError(errorEl, 'Invalid code. Please try again.');
+                return;
+            }
+
+            // --- SUCCESS ---
+
+            // 1. Create User
+            const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            const newUser = {
+                name: tempRegistrationData.name,
+                email: tempRegistrationData.email,
+                passwordHash: tempRegistrationData.passwordHash,
+                verified: true
+            };
+            users.push(newUser);
+            localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+            // 2. Send Welcome Email
+            sendWelcomeEmail(newUser.name, newUser.email);
+
+            // 3. Auto Login
+            const loggedInUser = { name: newUser.name, email: newUser.email };
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(loggedInUser));
+
+            // 4. Cleanup & Redirect
+            document.getElementById('verifyForm').reset();
+            tempRegistrationData = null;
+            document.getElementById('welcomeScreen').classList.remove('visible');
+
+            showToast('Verified!', `Welcome to Remindly, ${newUser.name}!`);
+            loginUser(loggedInUser);
+        }
+
+        function resendCode() {
+            if (!tempRegistrationData) return;
+
+            // Generate new OTP
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            tempRegistrationData.otp = otp;
+            tempRegistrationData.expires = Date.now() + 10 * 60 * 1000;
+            tempRegistrationData.attempts = 0; // Reset attempts on resend
+
+            sendVerificationEmail(tempRegistrationData.email, otp);
+            showToast('Resent', 'A new code has been sent.');
+        }
+
+        async function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signInEmail').value.trim().toLowerCase();
+            const password = document.getElementById('signInPassword').value;
+            const rememberMe = document.getElementById('rememberMeCheck').checked;
+            const errorEl = document.getElementById('signInError');
+
+            errorEl.style.display = 'none';
+
+            const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+            const user = users.find(u => u.email === email);
+
+            if (!user) {
+                showAuthError(errorEl, 'Invalid email or password');
+                return;
+            }
+
+            const passwordHash = await hashPassword(password);
+            if (user.passwordHash !== passwordHash) {
+                showAuthError(errorEl, 'Invalid email or password');
+                return;
+            }
+
+            completeLogin(user, rememberMe);
+        }
+
+        function showAuthError(el, msg) {
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function completeLogin(user, rememberMe) {
+            currentUser = { name: user.name, email: user.email };
+
+            const userStr = JSON.stringify(currentUser);
+            if (rememberMe) {
+                localStorage.setItem(CURRENT_USER_KEY, userStr);
+            } else {
+                sessionStorage.setItem(CURRENT_USER_KEY, userStr);
+            }
+
+            document.getElementById('welcomeScreen').classList.remove('visible');
+            loginUser(currentUser);
+        }
+
+        function loginUser(user) {
+            // Hide Landing Page
+            document.getElementById('landingPage').style.display = 'none';
+            // Show Dashboard
+            document.getElementById('appDashboard').style.display = 'block';
+
+            // Update UI
+            updateHeader(user.name);
+            loadActivities(user.email); // Retrieve by Email
+            updateStats();
+            renderActivities();
+            renderCalendar();
+
+            // Re-schedule notifications
+            activities.forEach(activity => {
+                if (new Date(activity.date) > new Date()) scheduleNotifications(activity);
+            });
+        }
+
+        function handleSignOut() {
+            // Clear current user
+            localStorage.removeItem(CURRENT_USER_KEY);
+            sessionStorage.removeItem(CURRENT_USER_KEY);
+            currentUser = null;
+            activities = [];
+
+            // Clear notifications
+            scheduledNotifications.forEach(id => clearTimeout(id));
+            scheduledNotifications.clear();
+
+            // Reset UI
+            document.getElementById('signInForm').reset();
+            document.getElementById('signUpForm').reset();
+
+            // Go to Landing Page
+            showLandingPage();
+        }
+
+        function updateHeader(name) {
+            const userDisplay = document.getElementById('userDisplayName');
+            if (userDisplay) {
+                userDisplay.textContent = `Welcome, ${name}`;
+            }
+        }
+
+        // --- Data Management ---
+        function getStorageKey(email) {
+            return `remindly_activities_${email}`;
+        }
+
+        function loadActivities(email) {
+            const key = getStorageKey(email);
+            const stored = localStorage.getItem(key);
+            activities = stored ? JSON.parse(stored) : [];
+        }
+
+        function saveActivities() {
+            if (!currentUser) return;
+            const key = getStorageKey(currentUser.email);
+            localStorage.setItem(key, JSON.stringify(activities));
+        }
+
+        // --- Activities Logic ---
+        function addActivity() {
+            const title = document.getElementById('activityTitle').value.trim();
+            const description = document.getElementById('activityDescription').value.trim();
+            const time = document.getElementById('activityTime').value;
+
+            if (!title) {
+                showToast('Error', 'Please enter an activity title');
+                return;
+            }
+
+            if (!time) {
+                showToast('Error', 'Please select a date and time');
+                return;
+            }
+
+            const activityDate = new Date(time);
+            if (activityDate <= new Date()) {
+                showToast('Error', 'Please select a future date and time');
+                return;
+            }
+
+            const activity = {
+                id: Date.now(),
+                title,
+                description,
+                date: activityDate.toISOString(),
+                created: new Date().toISOString()
+            };
+
+            activities.push(activity);
+            saveActivities();
+            scheduleNotifications(activity);
+
+            // Clear form
+            document.getElementById('activityTitle').value = '';
+            document.getElementById('activityDescription').value = '';
+            document.getElementById('activityTime').value = '';
+
+            showToast('Success', 'Activity added successfully!');
+            updateStats();
+            renderActivities();
+            renderCalendar();
+
+            // Switch to activities tab
+            switchTab('activities');
+        }
+
+        function deleteActivity(id) {
+            if (confirm('Are you sure you want to delete this activity?')) {
+                activities = activities.filter(a => a.id !== id);
+                saveActivities();
+                cancelNotifications(id);
+                updateStats();
+                renderActivities();
+                renderCalendar();
+                showToast('Deleted', 'Activity removed');
+            }
+        }
+
+        // --- Helper Functions (Existing) ---
+        function setMinDateTime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 1);
+            const minDateTime = now.toISOString().slice(0, 16);
+            const input = document.getElementById('activityTime');
+            if (input) input.min = minDateTime;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            const clickedTab = document.querySelector(`.tab[onclick*="${tabName}"]`) || document.querySelector('.tab');
+            if (clickedTab) clickedTab.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            const content = document.getElementById(tabName + 'Tab');
+            if (content) content.classList.add('active');
+
+            if (tabName === 'calendar') {
+                renderCalendar();
+            }
+        }
+
+        function tryAddNew() {
+            if (currentUser) {
+                switchTab('add');
+            } else {
+                showWelcomeScreen(); // Should be covered by overlay usually
+            }
+        }
+
+        // --- Notifications & Emails ---
+        function scheduleNotifications(activity) {
+            const activityDate = new Date(activity.date);
+            const now = new Date();
+
+            // 1. Browser Notification & Email Reminder (5 minutes before)
+            const reminderTime = new Date(activityDate.getTime() - 5 * 60 * 1000);
+            if (reminderTime > now) {
+                const reminderDelay = reminderTime - now;
+                const reminderId = setTimeout(() => {
+                    // Browser Notification
+                    showBrowserNotification(`Reminder: ${activity.title}`,
+                        `Your activity starts in 5 minutes at ${formatTime(activityDate)}`);
+
+                    // Email Reminder
+                    if (currentUser && currentUser.email) {
+                        sendReminderEmail(activity, currentUser.email);
+                    }
+                }, reminderDelay);
+                scheduledNotifications.set(`reminder-${activity.id}`, reminderId);
+            }
+
+            // 2. Browser Notification & Email & Alarm (At activity time)
+            if (activityDate > now) {
+                const activityDelay = activityDate - now;
+                const activityId = setTimeout(() => {
+                    // Browser Notification & Alarm
+                    showBrowserNotification(`Time for: ${activity.title}!`,
+                        activity.description || 'Get started now!');
+                    playAlarm();
+
+                    // Email Notification
+                    if (currentUser && currentUser.email) {
+                        sendActivityStartEmail(activity, currentUser.email);
+                    }
+                }, activityDelay);
+                scheduledNotifications.set(`activity-${activity.id}`, activityId);
+            }
+        }
+
+        // --- EmailJS Helper Functions ---
+
+        function sendEmail(templateParams) {
+            console.log('=== ATTEMPTING TO SEND EMAIL ===');
+            console.log('Service ID:', EMAILJS_SERVICE_ID);
+            console.log('Template ID:', EMAILJS_TEMPLATE_ID);
+            console.log('Template Params:', templateParams);
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function (response) {
+                    console.log('✅ Email sent successfully!', response.status, response.text);
+                    showToast('Email Sent', 'Verification code has been sent to your email');
+                }, function (error) {
+                    console.error('❌ Failed to send email:', error);
+                    showToast('Email Error', 'Failed to send verification code. Please try again.');
+                });
+        }
+
+        function sendWelcomeEmail(name, email) {
+            const templateParams = {
+                to_name: name,
+                to_email: email,
+                subject: "Welcome to Remindly!",
+                message: `Hi ${name},\n\nWelcome to Remindly! We're excited to help you organize your daily activities and meetings.\n\nYou can now start adding your daily tasks and we'll remind you right on time.\n\nBest,\nThe Remindly Team`
+            };
+            sendEmail(templateParams);
+        }
+
+        function sendReminderEmail(activity, email) {
+            const templateParams = {
+                to_name: currentUser.name,
+                to_email: email,
+                subject: `Reminder: ${activity.title} in 5 minutes`,
+                message: `Hello ${currentUser.name},\n\nThis is a friendly reminder that your activity "${activity.title}" is coming up in 5 minutes at ${formatTime(new Date(activity.date))}.\n\nDescription: ${activity.description || 'No description provided.'}\n\nGet ready!`
+            };
+            sendEmail(templateParams);
+        }
+
+        function sendVerificationEmail(email, code) {
+            const templateParams = {
+                to_name: "Remindly User", // Or tempRegistrationData.name
+                to_email: email,
+                subject: "Your Remindly Verification Code",
+                message: `Your verification code is: ${code}\n\nThis code is valid for 10 minutes. Do not share it with anyone.`
+            };
+            // Note: If you have a specific template for codes, use that ID. 
+            // Otherwise we reuse the generic message template.
+            sendEmail(templateParams);
+        }
+
+        function sendActivityStartEmail(activity, email) {
+            const templateParams = {
+                to_name: currentUser.name,
+                to_email: email,
+                subject: `It's time for: ${activity.title}`,
+                message: `Hello ${currentUser.name},\n\nIt is now ${formatTime(new Date(activity.date))} and time for "${activity.title}".\n\n${activity.description ? 'Details: ' + activity.description : ''}\n\nGood luck!`
+            };
+            sendEmail(templateParams);
+        }
+
+        function cancelNotifications(activityId) {
+            const reminderId = scheduledNotifications.get(`reminder-${activityId}`);
+            const activityNotifId = scheduledNotifications.get(`activity-${activityId}`);
+            if (reminderId) clearTimeout(reminderId);
+            if (activityNotifId) clearTimeout(activityNotifId);
+            scheduledNotifications.delete(`reminder-${activityId}`);
+            scheduledNotifications.delete(`activity-${activityId}`);
+        }
+
+        function showBrowserNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, { body, icon: '⏰' });
+            }
+            showToast(title, body);
+        }
+
+        function playAlarm() {
+            const alarm = document.getElementById('alarmSound');
+            if (alarm) {
+                alarm.play().catch(e => console.log('Alarm play failed:', e));
+                setTimeout(() => {
+                    alarm.pause();
+                    alarm.currentTime = 0;
+                }, 30000);
+            }
+        }
+
+        function checkActivities() {
+            const now = new Date();
+            activities.forEach(activity => {
+                const activityDate = new Date(activity.date);
+                const timeDiff = activityDate - now;
+                if (timeDiff > 0 && timeDiff < 60000) { // Check if within last minute window? No, next minute.
+                    // Actually, if we missed the exact timeout, this catches it?
+                    // Simplified: just rely on timeouts for now, this is backup.
+                }
+            });
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+
+        // --- Formatting & UI Helpers ---
+        function formatDateTime(date) {
+            return date.toLocaleString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getTimeUntil(date) {
+            const now = new Date();
+            const diff = date - now;
+            if (diff < 0) return null;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (hours < 1) return `in ${minutes} min`;
+            if (hours < 24) return `in ${hours}h ${minutes}m`;
+            const days = Math.floor(hours / 24);
+            return `in ${days} day${days > 1 ? 's' : ''}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // --- Rendering ---
+        function renderActivities() {
+            const list = document.getElementById('activitiesList');
+            if (!list) return;
+
+            const now = new Date();
+            const sorted = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (sorted.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">No activities yet. Add your first one!</div>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = sorted.map(activity => {
+                const activityDate = new Date(activity.date);
+                const isPast = activityDate < now;
+                const timeUntil = getTimeUntil(activityDate);
+
+                return `
+                    <div class="activity-card ${isPast ? 'past' : ''}">
+                        <div class="activity-header">
+                            <div>
+                                <h3 class="activity-title">${escapeHtml(activity.title)}</h3>
+                                <div class="activity-time">
+                                    <span class="activity-time-icon">${isPast ? '✓' : '⏰'}</span>
+                                    ${formatDateTime(activityDate)}
+                                </div>
+                            </div>
+                        </div>
+                        ${activity.description ? `<p class="activity-description">${escapeHtml(activity.description)}</p>` : ''}
+                        ${!isPast && timeUntil ? `<div class="activity-countdown">${timeUntil}</div>` : ''}
+                        <div class="activity-actions">
+                            <button class="btn-delete" onclick="deleteActivity(${activity.id})">🗑️ Delete</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function updateStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const upcoming = activities.filter(a => new Date(a.date) >= now).length;
+            const todayCount = activities.filter(a => {
+                const actDate = new Date(a.date);
+                return actDate >= today && actDate < tomorrow;
+            }).length;
+
+            if (document.getElementById('totalActivities')) document.getElementById('totalActivities').textContent = activities.length;
+            if (document.getElementById('upcomingActivities')) document.getElementById('upcomingActivities').textContent = upcoming;
+            if (document.getElementById('todayActivities')) document.getElementById('todayActivities').textContent = todayCount;
+        }
+
+        // --- Calendar ---
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            if (document.getElementById('calendarMonth')) document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthActivities = activities.filter(a => {
+                const actDate = new Date(a.date);
+                return actDate.getMonth() === month && actDate.getFullYear() === year;
+            });
+
+            const calendarDays = document.getElementById('calendarDays');
+            if (!calendarDays) return;
+            calendarDays.innerHTML = '';
+
+            for (let i = 0; i < firstDay; i++) {
+                calendarDays.innerHTML += '<div></div>';
+            }
+
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const isToday = date.toDateString() === today.toDateString();
+                const hasActivity = monthActivities.some(a => new Date(a.date).getDate() === day);
+
+                calendarDays.innerHTML += `
+                    <div class="calendar-day ${isToday ? 'today' : ''} ${hasActivity ? 'has-activity' : ''}"
+                         onclick="selectDay(${day})">
+                        <div class="calendar-day-number">${day}</div>
+                    </div>`;
+            }
+        }
+
+        function changeMonth(delta) {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function selectDay(day) {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const selectedDate = new Date(year, month, day);
+
+            const dayActivities = activities.filter(a => {
+                const actDate = new Date(a.date);
+                return actDate.getDate() === day &&
+                    actDate.getMonth() === month &&
+                    actDate.getFullYear() === year;
+            });
+
+            const container = document.getElementById('selectedDayActivities');
+            if (!container) return;
+
+            if (dayActivities.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <div class="empty-state-text">No activities on this day</div>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <h3 style="color: var(--accent-primary); margin-bottom: 1rem; font-family: 'Playfair Display', serif; font-size: 1.5rem;">
+                    Activities on ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                </h3>
+                ${dayActivities.map(activity => `
+                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+                            ${escapeHtml(activity.title)}
+                        </div>
+                        <div style="color: var(--accent-primary); font-size: 0.9rem;">
+                            ${formatTime(new Date(activity.date))}
+                        </div>
+                        ${activity.description ? `<div style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">${escapeHtml(activity.description)}</div>` : ''}
+                    </div>
+                `).join('')}`;
+        }
+    </script>
+</body>
+
+</html>
